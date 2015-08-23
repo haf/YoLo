@@ -1,0 +1,7 @@
+You should use Paket's github dependency to include the YoLo.fs file into your
+project.
+
+  https://fsprojects.github.io/Paket/github-dependencies.html
+
+Because it's licensed under the wtf-you-want license you can use this code in
+any way you want.
