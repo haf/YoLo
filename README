@@ -5,3 +5,7 @@ project.
 
 Because it's licensed under the wtf-you-want license you can use this code in
 any way you want.
+
+Run this when you want to adapt YoLo to your project:
+
+  ruby -pi.bak -e "gsub(/module internal YoLo/, 'module internal YOURNAMESPACE.YoLo')" paket-files/haf/YoLo/YoLo.fs
