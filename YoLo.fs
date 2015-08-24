@@ -11,59 +11,59 @@ let flip f a b = f b a
 
 module Choice =
 
-  let inline create v = Choice1Of2 v
+  let create v = Choice1Of2 v
 
-  let inline createSnd v = Choice2Of2 v
+  let createSnd v = Choice2Of2 v
 
-  let inline map f = function
+  let map f = function
     | Choice1Of2 v -> Choice1Of2 (f v)
     | Choice2Of2 msg -> Choice2Of2 msg
 
-  let inline mapSnd f = function
+  let mapSnd f = function
     | Choice1Of2 v -> Choice1Of2 v
     | Choice2Of2 v -> Choice2Of2 (f v)
 
-  let inline bind (f : 'a -> Choice<'b, 'c>) (v : Choice<'a, 'c>) =
+  let bind (f : 'a -> Choice<'b, 'c>) (v : Choice<'a, 'c>) =
     match v with
     | Choice1Of2 v -> f v
     | Choice2Of2 c -> Choice2Of2 c
 
-  let inline bindSnd (f : 'a -> Choice<'c, 'b>) (v : Choice<'c, 'a>) =
+  let bindSnd (f : 'a -> Choice<'c, 'b>) (v : Choice<'c, 'a>) =
     match v with
     | Choice1Of2 x -> Choice1Of2 x
     | Choice2Of2 x -> f x
 
-  let inline apply f v =
+  let apply f v =
     bind (fun f' ->
       bind (fun v' ->
         create (f' v')) v) f
 
-  let inline applySnd f v =
+  let applySnd f v =
     bind (fun f' ->
       bindSnd (fun v' ->
         createSnd (f' v')) v) f
 
-  let inline lift2 f v1 v2 =
+  let lift2 f v1 v2 =
     apply (apply (create f) v1) v2
 
-  let inline lift3 f v1 v2 v3 =
+  let lift3 f v1 v2 v3 =
     apply (apply (apply (create f) v1) v2) v3
 
-  let inline lift4 f v1 v2 v3 v4 =
+  let lift4 f v1 v2 v3 v4 =
     apply (apply (apply (apply (create f) v1) v2) v3) v4
 
-  let inline lift5 f v1 v2 v3 v4 v5 =
+  let lift5 f v1 v2 v3 v4 v5 =
     apply (apply (apply (apply (apply (create f) v1) v2) v3) v4) v5
 
-  let inline ofOption onMissing = function
+  let ofOption onMissing = function
     | Some x -> Choice1Of2 x
     | None   -> Choice2Of2 onMissing
 
-  let inline inject f = function
+  let inject f = function
     | Choice1Of2 x -> f x; Choice1Of2 x
     | Choice2Of2 x -> Choice1Of2 x
 
-  let inline injectSnd f = function
+  let injectSnd f = function
     | Choice1Of2 x -> Choice1Of2 x
     | Choice2Of2 x -> f x; Choice1Of2 x
 
@@ -118,16 +118,16 @@ module Option =
       Option.bind (fun v' ->
         create (f' v')) v) f
 
-  let inline lift2 f v1 v2 =
+  let lift2 f v1 v2 =
     apply (apply (create f) v1) v2
 
-  let inline lift3 f v1 v2 v3 =
+  let lift3 f v1 v2 v3 =
     apply (apply (apply (create f) v1) v2) v3
 
-  let inline lift4 f v1 v2 v3 v4 =
+  let lift4 f v1 v2 v3 v4 =
     apply (apply (apply (apply (create f) v1) v2) v3) v4
 
-  let inline lift5 f v1 v2 v3 v4 v5 =
+  let lift5 f v1 v2 v3 v4 v5 =
     apply (apply (apply (apply (apply (create f) v1) v2) v3) v4) v5
 
   let ofChoice = function
@@ -143,7 +143,7 @@ module Option =
     | None -> x
     | Some y -> y
 
-  let inline inject f = function
+  let inject f = function
     | Some x -> f x; Some x
     | None   -> None
 
@@ -258,13 +258,13 @@ module UTF8 =
 
   let private utf8 = Encoding.UTF8
 
-  let inline toString (bs : byte []) =
+  let toString (bs : byte []) =
     utf8.GetString bs
 
-  let inline toStringAtOffset (b : byte []) (index : int) (count : int) =
+  let toStringAtOffset (b : byte []) (index : int) (count : int) =
     utf8.GetString(b, index, count)
 
-  let inline bytes (s : string) =
+  let bytes (s : string) =
     utf8.GetBytes s
   
   /// Encode the string as UTF8 encoded in Base64.
