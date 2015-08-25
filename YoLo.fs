@@ -134,13 +134,21 @@ module Option =
     | Choice1Of2 x -> Some x
     | _ -> None
 
+  let toChoice case2 = function
+    | Some x -> Choice1Of2 x
+    | None   -> Choice2Of2 case2
+
   let ofNullable nullable : 'a option =
     match box nullable with
-    | null -> None
-    | :? Nullable<_> as n when not n.HasValue -> None
-    | :? Nullable<_> as n when n.HasValue -> Some (n.Value)
-    | x when x.Equals (DBNull.Value) -> None
-    | x -> Some (unbox x)
+    | null -> None // CLR null
+    | :? Nullable<_> as n when not n.HasValue -> None // CLR struct
+    | :? Nullable<_> as n when n.HasValue -> Some (n.Value) // CLR struct
+    | x when x.Equals (DBNull.Value) -> None // useful when reading from the db into F#
+    | x -> Some (unbox x) // anything else
+
+  let toNullable = function
+    | Some item -> new Nullable<_>(item)
+    | None      -> new Nullable<_>()
 
   let orDefault x = function
     | None -> x
