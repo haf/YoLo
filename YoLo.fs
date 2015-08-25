@@ -1,4 +1,4 @@
-﻿[<AutoOpen>]
+[<AutoOpen>]
 module internal YoLo
 
 open System
@@ -134,10 +134,13 @@ module Option =
     | Choice1Of2 x -> Some x
     | _ -> None
 
-  let ofNullable = function
+  let ofNullable nullable : 'a option =
+    match box nullable with
     | null -> None
-    | x when x.Equals(DBNull.Value) -> None
-    | x -> Some x
+    | :? Nullable<_> as n when not n.HasValue -> None
+    | :? Nullable<_> as n when n.HasValue -> Some (n.Value)
+    | x when x.Equals (DBNull.Value) -> None
+    | x -> Some (unbox x)
 
   let orDefault x = function
     | None -> x
