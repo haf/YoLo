@@ -190,6 +190,12 @@ module String =
   let equals (a : string) (b : string) =
     a.Equals(b, StringComparison.InvariantCulture)
 
+  let contains (sub : string) (par : string) =
+    par.Contains sub
+
+  let trim (s : string) =
+    s.Trim()
+
   let equalsConstantTime (str1 : string) (str2 : string) =
     let mutable xx = uint32 str1.Length ^^^ uint32 str2.Length
     let mutable i = 0
