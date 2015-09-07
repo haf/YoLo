@@ -219,6 +219,9 @@ module String =
     use sha = SHA1.Create()
     sha.ComputeHash ms |> BitConverter.ToString |> fun s -> s.Replace("-", "")
 
+  let isEmpty (s : string) =
+    s.Length = 0
+
 module Map =
 
   /// put a key to the map; if it's not there already, just add it
