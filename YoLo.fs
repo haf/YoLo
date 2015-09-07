@@ -2,6 +2,7 @@
 module internal YoLo
 
 open System
+open System.Threading.Tasks
 
 let curry f a b = f (a, b)
 
@@ -218,43 +219,6 @@ module String =
     use sha = SHA1.Create()
     sha.ComputeHash ms |> BitConverter.ToString |> fun s -> s.Replace("-", "")
 
-module List =
-
-  /// Split xs at n, into two lists, or where xs ends if xs.Length < n.
-  let split n xs =
-    let rec splitUtil n xs acc =
-      match xs with
-      | [] -> List.rev acc, []
-      | _ when n = 0u -> List.rev acc, xs
-      | x::xs' -> splitUtil (n - 1u) xs' (x::acc)
-    splitUtil n xs []
-
-  /// Chunk a list into pageSize large chunks
-  let chunk pageSize = function
-    | [] -> None
-    | l -> let h, t = l |> split pageSize in Some(h, t)
-
-  let first = function
-    | [] -> None
-    | x :: _ -> Some x
-
-module Seq =
-
-  let combinations size set =
-    let rec combinations' acc size set =
-      seq {
-        match size, set with
-        | n, x::xs ->
-            if n > 0 then yield! combinations' (x::acc) (n - 1) xs
-            if n >= 0 then yield! combinations' acc n xs
-        | 0, [] -> yield acc
-        | _, [] -> ()
-      }
-    combinations' [] size set
-
-  let first (xs : _ seq) : _ option =
-    if Seq.isEmpty xs then None else Seq.head xs |> Some
-
 module Map =
 
   /// put a key to the map; if it's not there already, just add it
@@ -283,7 +247,7 @@ module UTF8 =
 
   let bytes (s : string) =
     utf8.GetBytes s
-  
+
   /// Encode the string as UTF8 encoded in Base64.
   let encodeBase64 : string -> Base64String =
     bytes >> Convert.ToBase64String
@@ -370,6 +334,183 @@ module Regex =
       |> fun x -> x.Groups
       |> Some
     | _ -> None
+
+type Microsoft.FSharp.Control.Async with
+  /// Raise an exception on the async computation/workflow.
+  static member AsyncRaise (e : exn) =
+    Async.FromContinuations(fun (_,econt,_) -> econt e)
+
+  /// Await a task asynchronously
+  static member AwaitTask (t : Task) =
+    let flattenExns (e : AggregateException) = e.Flatten().InnerExceptions.[0]
+    let rewrapAsyncExn (it : Async<unit>) =
+      async { try do! it with :? AggregateException as ae -> do! Async.AsyncRaise (flattenExns ae) }
+    let tcs = new TaskCompletionSource<unit>(TaskCreationOptions.None)
+    t.ContinueWith((fun t' ->
+      if t.IsFaulted then tcs.SetException(t.Exception |> flattenExns)
+      elif t.IsCanceled then tcs.SetCanceled ()
+      else tcs.SetResult(())), TaskContinuationOptions.ExecuteSynchronously)
+    |> ignore
+    tcs.Task |> Async.AwaitTask |> rewrapAsyncExn
+
+type Microsoft.FSharp.Control.AsyncBuilder with
+  /// An extension method that overloads the standard 'Bind' of the 'async' builder. The new overload awaits on
+  /// a standard .NET task
+  member x.Bind(t : Task<'T>, f:'T -> Async<'R>) : Async<'R> =
+    async.Bind(Async.AwaitTask t, f)
+
+  /// An extension method that overloads the standard 'Bind' of the 'async' builder. The new overload awaits on
+  /// a standard .NET task which does not commpute a value
+  member x.Bind(t : Task, f : unit -> Async<'R>) : Async<'R> =
+    async.Bind(Async.AwaitTask t, f)
+
+module Async =
+
+  let result = async.Return
+
+  let map f value = async {
+    let! v = value
+    return f v
+  }
+
+  let bind f xAsync = async {
+    let! x = xAsync
+    return! f x
+  }
+
+  let apply fAsync xAsync = async {
+    // start the two asyncs in parallel
+    let! fChild = Async.StartChild fAsync
+    let! xChild = Async.StartChild xAsync
+
+    // wait for the results
+    let! f = fChild
+    let! x = xChild
+
+    // apply the function to the results
+    return f x
+  }
+
+  let lift2 f x y =
+    apply (apply (result f) x) y
+
+  let lift3 f x y z =
+    apply (apply (apply (result f) x) y) z
+
+  let lift4 f x y z a =
+    apply (apply (apply (apply (result f) x) y) z) a
+
+  let lift5 f x y z a b =
+    apply (apply (apply (apply (apply (result f) x) y) z) a) b
+
+  module Operators =
+
+    let inline (>>=) m f =
+      bind f m
+
+    let inline (=<<) f m =
+      bind f m
+
+    let inline (<*>) f m =
+      apply f m
+
+    let inline (<!>) f m =
+      map f m
+
+    let inline ( *>) m1 m2 =
+      lift2 (fun _ x -> x) m1 m2
+
+    let inline ( <*) m1 m2 =
+      lift2 (fun x _ -> x) m1 m2
+
+module List =
+
+  /// Split xs at n, into two lists, or where xs ends if xs.Length < n.
+  let split n xs =
+    let rec splitUtil n xs acc =
+      match xs with
+      | [] -> List.rev acc, []
+      | _ when n = 0u -> List.rev acc, xs
+      | x::xs' -> splitUtil (n - 1u) xs' (x::acc)
+    splitUtil n xs []
+
+  /// Chunk a list into pageSize large chunks
+  let chunk pageSize = function
+    | [] -> None
+    | l -> let h, t = l |> split pageSize in Some(h, t)
+
+  let first = function
+    | [] -> None
+    | x :: _ -> Some x
+
+  // Description of the below functions:
+  // http://fsharpforfunandprofit.com/posts/elevated-world-5/#asynclist
+
+  /// Map a Async producing function over a list to get a new Async using
+  /// applicative style. ('a -> Async<'b>) -> 'a list -> Async<'b list>
+  let rec traverseAsyncA f list =
+    let (<*>) = Async.apply
+    let cons head tail = head :: tail
+    let initState = Async.result []
+    let folder head tail =
+      Async.result cons <*> (f head) <*> tail
+
+    List.foldBack folder list initState
+
+  /// Transform a "list<Async>" into a "Async<list>" and collect the results
+  /// using apply.
+  let sequenceAsyncA x = traverseAsyncA id x
+
+  /// Map a Choice-producing function over a list to get a new Choice using
+  /// applicative style. ('a -> Choice<'b, 'c>) -> 'a list -> Choice<'b list, 'c>
+  let rec traverseChoiceA f list =
+    let (<*>) = Choice.apply
+    let cons head tail = head :: tail
+
+    // right fold over the list
+    let initState = Choice.create []
+    let folder head tail =
+      Choice.create cons <*> (f head) <*> tail
+
+    List.foldBack folder list initState
+
+  /// Transform a "list<Choice>" into a "Choice<list>" and collect the results
+  /// using apply.
+  let sequenceResultA x = traverseChoiceA id x
+
+module Seq =
+
+  let combinations size set =
+    let rec combinations' acc size set =
+      seq {
+        match size, set with
+        | n, x::xs ->
+            if n > 0 then yield! combinations' (x::acc) (n - 1) xs
+            if n >= 0 then yield! combinations' acc n xs
+        | 0, [] -> yield acc
+        | _, [] -> ()
+      }
+    combinations' [] size set
+
+  let first (xs : _ seq) : _ option =
+    if Seq.isEmpty xs then None else Seq.head xs |> Some
+
+module Env =
+
+  let var (k : string) =
+    match Environment.GetEnvironmentVariable k with
+    | null -> None
+    | v    -> Some v
+
+  let varDefault (key : String) (def : string) =
+    match var key with
+    | Some v -> v
+    | None -> def
+
+  let varRequired (k : String) =
+    match var k with
+    | Some v -> v
+    | None ->failwithf "missing environment var %s" k
 
 module App =
 
