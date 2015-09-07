@@ -479,7 +479,7 @@ module List =
 
   /// Transform a "list<Choice>" into a "Choice<list>" and collect the results
   /// using apply.
-  let sequenceResultA x = traverseChoiceA id x
+  let sequenceChoiceA x = traverseChoiceA id x
 
 module Seq =
 
