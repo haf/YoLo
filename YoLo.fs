@@ -188,8 +188,13 @@ module String =
   open System.IO
   open System.Security.Cryptography
 
+  /// Also, invariant culture
   let equals (a : string) (b : string) =
     a.Equals(b, StringComparison.InvariantCulture)
+
+  /// Also, invariant culture
+  let equalsCaseInsensitve (a : string) (b : string) =
+    a.Equals(b, StringComparison.InvariantCultureIgnoreCase)
 
   let contains (sub : string) (par : string) =
     par.Contains sub
