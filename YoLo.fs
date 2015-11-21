@@ -312,7 +312,21 @@ module Bytes =
 
   let sha1 =
     hash (SHA1.Create())
+    
+  /// Compare two byte arrays in constant time, bounded by the length of the
+  /// longest byte array.
+  let equalsConstantTime (bits : byte []) (bobs : byte []) =
+    let mutable xx = uint32 bits.Length ^^^ uint32 bobs.Length
+    let mutable i = 0
+    while i < bits.Length && i < bobs.Length do
+      xx <- xx ||| uint32 (bits.[i] ^^^ bobs.[i])
+      i <- i + 1
+    xx = 0u
 
+module Array =
+
+  /// Ordinally compare two arrays in constant time, bounded by the length of the
+  /// longest array. This function uses the F# language equality.
   let equalsConstantTime (arr1 : 'a []) (arr2 : 'a []) =
     if arr1.Length <> arr2.Length then false else
     let mutable b = true
