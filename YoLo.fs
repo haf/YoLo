@@ -197,12 +197,10 @@ module String =
   /// Also, invariant culture
   let equalsCaseInsensitve (a : string) (b : string) =
     a.Equals(b, StringComparison.InvariantCultureIgnoreCase)
-
-  let contains (sub : string) (par : string) =
-    par.Contains sub
-
-  let trim (s : string) =
-    s.Trim()
+    
+  /// Compare ordinally with ignore case.
+  let equalsOrdinalCI (str1 : string) (str2 : string) =
+    String.Equals(str1, str2, StringComparison.OrdinalIgnoreCase)
 
   /// Ordinally compare two strings in constant time, bounded by the length of the
   /// longest string.
@@ -213,6 +211,9 @@ module String =
       xx <- xx ||| uint32 (int str1.[i] ^^^ int str2.[i])
       i <- i + 1
     xx = 0u
+
+  let contains (sub : string) (par : string) =
+    par.Contains sub
 
   let toLowerInvariant (str : string) =
     str.ToLowerInvariant()
@@ -230,6 +231,30 @@ module String =
 
   let isEmpty (s : string) =
     s.Length = 0
+
+  let trim (s : string) =
+    s.Trim()
+  
+  let trimc (toTrim : char) (s : string) =
+    s.Trim toTrim
+  
+  let trimStart (s : string) =
+    s.TrimStart()
+  
+  let split (c : char) (s : string) =
+    s.Split c |> Array.toList
+  
+  let splita (c : char) (s : string) =
+    s.Split c
+  
+  let startsWith (substring : string) (s : string) =
+    s.StartsWith substring
+  
+  let contains (substring : string) (s : string) =
+    s.Contains substring
+  
+  let substring index (s : string) =
+    s.Substring index
 
 module Map =
 
