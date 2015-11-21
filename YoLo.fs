@@ -212,9 +212,6 @@ module String =
       i <- i + 1
     xx = 0u
 
-  let contains (sub : string) (par : string) =
-    par.Contains sub
-
   let toLowerInvariant (str : string) =
     str.ToLowerInvariant()
 
