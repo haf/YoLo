@@ -273,19 +273,27 @@ module UTF8 =
 
   let private utf8 = Encoding.UTF8
 
+  /// Convert the full buffer `b` filled with UTF8-encoded strings into a CLR
+  /// string.
   let toString (bs : byte []) =
     utf8.GetString bs
 
+  /// Convert the byte array to a string, by indexing into the passed buffer `b`
+  /// and taking `count` bytes from it.
   let toStringAtOffset (b : byte []) (index : int) (count : int) =
     utf8.GetString(b, index, count)
 
+  /// Get the UTF8-encoding of the string.
   let bytes (s : string) =
     utf8.GetBytes s
 
-  /// Encode the string as UTF8 encoded in Base64.
+  /// Convert the passed string `s` to UTF8 and then encode the buffer with
+  /// base64.
   let encodeBase64 : string -> Base64String =
     bytes >> Convert.ToBase64String
 
+  /// Convert the passed string `s`, assumed to be a valid Base64 encoding, to a
+  /// CLR string, going through UTF8.
   let decodeBase64 : Base64String -> string =
     Convert.FromBase64String >> toString
 
