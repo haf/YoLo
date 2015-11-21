@@ -204,6 +204,8 @@ module String =
   let trim (s : string) =
     s.Trim()
 
+  /// Ordinally compare two strings in constant time, bounded by the length of the
+  /// longest string.
   let equalsConstantTime (str1 : string) (str2 : string) =
     let mutable xx = uint32 str1.Length ^^^ uint32 str2.Length
     let mutable i = 0
