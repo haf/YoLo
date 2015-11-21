@@ -1,6 +1,8 @@
 [<AutoOpen>]
 module internal YoLo
 
+#nowarn "64"
+
 open System
 open System.Threading.Tasks
 
