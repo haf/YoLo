@@ -223,7 +223,7 @@ module String =
     use sw = new StreamWriter(ms)
     sw.Write str
     ms.Seek(0L, SeekOrigin.Begin) |> ignore
-    use sha = SHA1.Create()
+    use sha = new SHA1Managed()
     sha.ComputeHash ms |> BitConverter.ToString |> fun s -> s.Replace("-", "")
 
   let isEmpty (s : string) =
@@ -345,7 +345,7 @@ module Bytes =
     sha.ComputeHash ms |> toHex
 
   let sha1 =
-    hash (SHA1.Create())
+    hash (new SHA1Managed())
     
   /// Compare two byte arrays in constant time, bounded by the length of the
   /// longest byte array.
