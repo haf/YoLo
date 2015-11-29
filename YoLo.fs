@@ -346,6 +346,9 @@ module Bytes =
 
   let sha1 =
     hash (new SHA1Managed())
+
+  let sha256 =
+    hash (new SHA256Managed())
     
   /// Compare two byte arrays in constant time, bounded by the length of the
   /// longest byte array.
