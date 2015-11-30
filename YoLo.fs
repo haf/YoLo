@@ -589,7 +589,8 @@ module App =
   open System.IO
   open System.Reflection
 
-  let Version =
+  /// Gets the calling assembly's informational version number as a string
+  let getVersion () =
     Assembly.GetCallingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
             .InformationalVersion
