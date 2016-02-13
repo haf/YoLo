@@ -68,7 +68,7 @@ module Choice =
 
   let injectSnd f = function
     | Choice1Of2 x -> Choice1Of2 x
-    | Choice2Of2 x -> f x; Choice1Of2 x
+    | Choice2Of2 x -> f x; Choice2Of2 x
 
   module Operators =
 
