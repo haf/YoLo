@@ -271,7 +271,7 @@ module Bytes =
     |> String.replace "-" ""
     |> String.toLowerInvariant
 
-  let fromHex (digestString : string) =
+  let ofHex (digestString : string) =
     Enumerable.Range(0, digestString.Length)
               .Where(fun x -> x % 2 = 0)
               .Select(fun x -> Convert.ToByte(digestString.Substring(x, 2), 16))
