@@ -3,9 +3,21 @@ project.
 
   https://fsprojects.github.io/Paket/github-dependencies.html
 
+Or in short:
+
+  github haf/YoLo YoLo.fs
+
 Because it's licensed under the wtf-you-want license you can use this code in
 any way you want.
 
 Run this when you want to adapt YoLo to your project:
 
   ruby -pi.bak -e "gsub(/module internal YoLo/, 'module internal YOURNAMESPACE.YoLo')" paket-files/haf/YoLo/YoLo.fs
+  
+If you're using Rakefile:
+
+  task :yolo do
+    system 'ruby -pi.bak -e "gsub(/module internal YoLo/, 'module internal YOURNAMESPACE.YoLo')" paket-files/haf/YoLo/YoLo.fs' unless Albacore.windows?
+  end
+  
+Also, if you want to compile out-of-the box you can just add paket-files/haf/YoLo.fs to your SCM system.
