@@ -35,7 +35,12 @@ module Choice =
     match v with
     | Choice1Of2 x -> Choice1Of2 x
     | Choice2Of2 x -> f x
-
+    
+  let fold f g =
+    function
+    | Choice1Of2 x -> f x
+    | Choice2Of2 y -> g y
+    
   let apply f v =
     bind (fun f' ->
       bind (fun v' ->
