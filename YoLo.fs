@@ -263,32 +263,32 @@ module Bytes =
   open System.Linq
   open System.Security.Cryptography
 
-  let hash (algo : HashAlgorithm) (bs : byte[]) =
+  let hash (algo : unit -> #HashAlgorithm) (bs : byte[]) =
     use ms = new MemoryStream()
     ms.Write(bs, 0, bs.Length)
     ms.Seek(0L, SeekOrigin.Begin) |> ignore
-    use sha = algo
+    use sha = algo ()
     sha.ComputeHash ms
 
   let sha1 =
 #if DNXCORE50
-    hash (SHA1.Create())
+    hash (fun () -> SHA1.Create())
 #else
-    hash (new SHA1Managed())
+    hash (fun () -> new SHA1Managed())
 #endif
 
   let sha256 =
 #if DNXCORE50
-    hash (SHA256.Create())
+    hash (fun () -> SHA256.Create())
 #else
-    hash (new SHA256Managed())
+    hash (fun () -> new SHA256Managed())
 #endif
 
   let sha512 =
 #if DNXCORE50
-    hash (SHA512.Create())
+    hash (fun () -> SHA512.Create())
 #else
-    hash (new SHA512Managed())
+    hash (fun () -> new SHA512Managed())
 #endif
 
   let toHex (bs : byte[]) =
