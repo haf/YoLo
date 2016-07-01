@@ -1,5 +1,5 @@
 [<AutoOpen>]
-module internal YoLo
+module YoLo
 
 #nowarn "64"
 
