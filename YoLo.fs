@@ -428,7 +428,7 @@ module Regex =
       x
       |> Seq.cast<Match>
       |> Seq.head
-      |> fun x -> x.Groups
+      |> fun x -> Seq.cast<Group> x.Groups
       |> Some
     | _ -> None
 
