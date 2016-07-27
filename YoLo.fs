@@ -412,6 +412,8 @@ module Array =
 module Regex =
   open System.Text.RegularExpressions
 
+  type RegexMatch = Match
+
   let escape input =
     Regex.Escape input
 
@@ -421,6 +423,9 @@ module Regex =
 
   let replace pattern replacement input =
     Regex.Replace(input, pattern, (replacement : string))
+
+  let replaceWithFunction pattern (replaceFunc : RegexMatch -> string) input =
+    Regex.Replace(input, pattern, replaceFunc)
 
   let ``match`` pattern input =
     match Regex.Matches(input, pattern) with
