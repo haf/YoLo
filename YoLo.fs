@@ -427,13 +427,16 @@ module Regex =
   let replaceWithFunction pattern (replaceFunc : RegexMatch -> string) input =
     Regex.Replace(input, pattern, replaceFunc)
 
+  /// Match the `input` against the regex `pattern`. You can do a 
+  /// `Seq.cast<Group>` on the result to get it as a sequence
+  /// and also index with `.["name"]` into the result if you have
+  /// named capture groups.
   let ``match`` pattern input =
     match Regex.Matches(input, pattern) with
     | x when x.Count > 0 ->
       x
       |> Seq.cast<Match>
       |> Seq.head
-      |> fun x -> Seq.cast<Group> x.Groups
       |> Some
     | _ -> None
 
