@@ -634,12 +634,7 @@ module App =
             .InformationalVersion
 
   /// Get the assembly resource
-  let resource name =
-#if DNXCORE50
-    let assembly = typeof<Random>.GetTypeInfo().Assembly
-#else
-    let assembly = Assembly.GetExecutingAssembly ()
-#endif
+  let resourceIn (assembly : Assembly) name =
     use stream = assembly.GetManifestResourceStream name
     if stream = null then
       assembly.GetManifestResourceNames()
@@ -650,3 +645,12 @@ module App =
       use reader = new StreamReader(stream)
       reader.ReadToEnd ()
       |> Choice1Of2
+
+  /// Get the current assembly resource
+  let resource =
+#if DNXCORE50
+    let assembly = typeof<Random>.GetTypeInfo().Assembly
+#else
+    let assembly = Assembly.GetExecutingAssembly ()
+#endif
+    resourceIn assembly
