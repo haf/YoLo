@@ -634,7 +634,7 @@ module App =
             .InformationalVersion
 
   /// Get the assembly resource
-  let resourceIn (assembly: Assembly) name =
+  let resourceIn (assembly : Assembly) name =
     use stream = assembly.GetManifestResourceStream name
     if stream = null then
       assembly.GetManifestResourceNames()
