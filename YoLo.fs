@@ -204,7 +204,7 @@ module String =
 #endif
 
   /// Also, invariant culture
-  let equalsCaseInsensitve (a : string) (b : string) =
+  let equalsCaseInsensitive (a : string) (b : string) =
 #if DNXCORE50
     (CultureInfo.InvariantCulture.CompareInfo.GetStringComparer(CompareOptions.IgnoreCase)).Equals(a, b)
 #else
