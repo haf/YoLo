@@ -17,7 +17,7 @@ Run this when you want to adapt YoLo to your project:
 If you're using Rakefile:
 
   task :yolo do
-    system %{ruby -pi.bak -e "gsub(/module internal YoLo/, 'module internal YOURNAMESPACE.YoLo')" paket-files/haf/YoLo/YoLo.fs}
+    sh %{ruby -pi.bak -e "gsub(/module internal YoLo/, 'module internal YOURNAMESPACE.YoLo')" paket-files/haf/YoLo/YoLo.fs}
   end
   
 Also, if you want to compile out-of-the box you can just add paket-files/haf/YoLo.fs to your SCM system.
