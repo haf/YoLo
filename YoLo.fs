@@ -12,6 +12,8 @@ let uncurry f (a, b) = f a b
 
 let flip f a b = f b a
 
+let ct x = fun _ -> x
+
 module Choice =
 
   let create v = Choice1Of2 v
