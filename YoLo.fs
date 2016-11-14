@@ -12,6 +12,10 @@ let uncurry f (a, b) = f a b
 
 let flip f a b = f b a
 
+let eq x y = x = y
+    
+let neq x y = x <> y
+
 module Choice =
 
   let create v = Choice1Of2 v
