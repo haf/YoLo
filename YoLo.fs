@@ -12,6 +12,8 @@ let uncurry f (a, b) = f a b
 
 let flip f a b = f b a
 
+let ct x = fun _ -> x
+
 module Choice =
 
   let create v = Choice1Of2 v
@@ -485,13 +487,14 @@ module Async =
     return! f x
   }
 
-  let withTimeout (timeoutMillis) operation = 
+  let withTimeout timeoutMillis operation = 
     async {
       let! child = Async.StartChild(operation, timeoutMillis)
       try 
         let! result = child
         return Some result
-      with :? TimeoutException -> return None
+      with :? TimeoutException ->
+        return None
     }
 
   let apply fAsync xAsync = async {
