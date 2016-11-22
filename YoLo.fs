@@ -487,6 +487,16 @@ module Async =
     return! f x
   }
 
+  let withTimeout timeoutMillis operation = 
+    async {
+      let! child = Async.StartChild(operation, timeoutMillis)
+      try 
+        let! result = child
+        return Some result
+      with :? TimeoutException ->
+        return None
+    }
+
   let apply fAsync xAsync = async {
     // start the two asyncs in parallel
     let! fChild = Async.StartChild fAsync
