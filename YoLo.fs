@@ -667,3 +667,12 @@ module App =
     let assembly = Assembly.GetExecutingAssembly ()
 #endif
     resourceIn assembly
+
+module Dictionary = 
+  open System.Collections.Generic
+    
+    /// Attempts to retrieve a value as an option from a dictionary using the provided key
+    let getOpt key (dict : Dictionary<_, _>) = 
+      match dict.TryGetValue key with
+      | true, value -> Some value
+      | _ -> None
