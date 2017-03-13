@@ -315,15 +315,6 @@ module Bytes =
       i <- i + 1
     xx = 0u
 
-module Map =
-
-  /// put a key to the map; if it's not there already, just add it
-  /// otherwise, remove the existing key and place it there.
-  let put k v m =
-    match m |> Map.tryFind k with
-    | Some _ -> m |> Map.remove k |> Map.add k v
-    | None -> m |> Map.add k v
-
 [<RequireQualifiedAccess>]
 module Culture =
   open System.Globalization
