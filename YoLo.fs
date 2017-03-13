@@ -412,6 +412,27 @@ module Array =
       b <- b && (arr1.[i] = arr2.[i])
     b
 
+  /// Returns a sequence that yields chunks of length n.
+  /// Each chunk is returned as an array.
+  /// Thanks to
+  /// https://nbevans.wordpress.com/2014/03/13/really-simple-way-to-split-a-f-sequence-into-chunks-partitions/
+  let chunk (n: uint32) (s: seq<'t>) = seq {
+    let n = int n
+    let pos = ref 0
+    let buffer = Array.zeroCreate<'t> n
+
+    for x in s do
+      buffer.[!pos] <- x
+      if !pos = n - 1 then
+        yield buffer |> Array.copy
+        pos := 0
+      else
+        incr pos
+
+    if !pos > 0 then
+      yield Array.sub buffer 0 !pos
+  }
+
 module Regex =
   open System.Text.RegularExpressions
 
