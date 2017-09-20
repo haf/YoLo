@@ -28,6 +28,10 @@ module Choice =
     | Choice1Of2 v -> Choice1Of2 v
     | Choice2Of2 v -> Choice2Of2 (f v)
 
+  let map2 f1 f2: Choice<'a, 'b> -> Choice<'c, 'd> = function
+    | Choice1Of2 v -> Choice1Of2 (f1 v)
+    | Choice2Of2 v -> Choice2Of2 (f2 v)
+
   let bind (f : 'a -> Choice<'b, 'c>) (v : Choice<'a, 'c>) =
     match v with
     | Choice1Of2 v -> f v
