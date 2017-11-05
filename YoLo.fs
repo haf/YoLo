@@ -73,6 +73,14 @@ module Choice =
     | Some x -> Choice1Of2 x
     | None   -> Choice2Of2 onMissing
 
+  let ofResult = function
+    | Ok x -> Choice1Of2 x
+    | Error x -> Choice2Of2 x
+
+  let toResult = function
+    | Choice1Of2 x -> Ok x
+    | Choice2Of2 x -> Error x
+
   let inject f = function
     | Choice1Of2 x -> f x; Choice1Of2 x
     | Choice2Of2 x -> Choice2Of2 x
@@ -123,6 +131,105 @@ module Choice =
       lift2 (fun x _ -> x) m1 m2
 
 
+module Result =
+
+
+  let map2 f1 f2: Result<'a, 'b> -> Result<'c, 'd> = function
+    | Ok v -> Ok (f1 v)
+    | Error v -> Error (f2 v)
+
+  let bindError (f : 'a -> Result<'c, 'b>) (v : Result<'c, 'a>) =
+    match v with
+    | Ok x -> Ok x
+    | Error x -> f x
+    
+  let fold f g =
+    function
+    | Ok x -> f x
+    | Error y -> g y
+    
+  let apply f v =
+    Result.bind (fun f' ->
+      Result.bind (fun v' ->
+        Ok (f' v')) v) f
+
+  let applyError f v =
+    Result.bind (fun f' ->
+      bindError (fun v' ->
+        Error (f' v')) v) f
+
+  let lift2 f v1 v2 =
+    apply (apply (Ok f) v1) v2
+
+  let lift3 f v1 v2 v3 =
+    apply (apply (apply (Ok f) v1) v2) v3
+
+  let lift4 f v1 v2 v3 v4 =
+    apply (apply (apply (apply (Ok f) v1) v2) v3) v4
+
+  let lift5 f v1 v2 v3 v4 v5 =
+    apply (apply (apply (apply (apply (Ok f) v1) v2) v3) v4) v5
+
+  let ofOption onMissing = function
+    | Some x -> Ok x
+    | None   -> Error onMissing
+
+  let toChoice = function
+    | Ok x -> Choice1Of2 x
+    | Error x -> Choice2Of2 x
+
+  let ofChoice = function
+    | Choice1Of2 x -> Ok x
+    | Choice2Of2 x -> Error x
+
+  let inject f = function
+    | Ok x -> f x; Ok x
+    | Error x -> Error x
+
+  let injectError f = function
+    | Ok x -> Ok x
+    | Error x -> f x; Error x
+
+  module Operators =
+
+    let inline (>>=) m f =
+      Result.bind f m
+
+    let inline (>>-) m f = // snd
+      bindError f m
+
+    let inline (=<<) f m =
+      Result.bind f m
+
+    let inline (-<<) f m = // snd
+      bindError f m
+
+    let inline (>>*) m f =
+      inject f m
+
+    let inline (>>@) m f = // snd
+      injectError f m
+
+    let inline (<*>) f m =
+      apply f m
+
+    let inline (<!>) f m =
+      Result.map f m
+
+    let inline (>!>) m f =
+      Result.map f m
+
+    let inline (<@>) f m = // snd
+      Result.mapError f m
+
+    let inline (>@>) m f = // snd
+      Result.mapError f m
+
+    let inline ( *>) m1 m2 =
+      lift2 (fun _ x -> x) m1 m2
+
+    let inline ( <*) m1 m2 =
+      lift2 (fun x _ -> x) m1 m2
 module Option =
 
   let create x = Some x
