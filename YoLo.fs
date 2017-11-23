@@ -14,122 +14,121 @@ let flip f a b = f b a
 
 let ct x = fun _ -> x
 
-module Compatibility=
-  module Choice =
-  
-    let create v = Choice1Of2 v
-  
-    let createSnd v = Choice2Of2 v
-  
-    let map f = function
-      | Choice1Of2 v -> Choice1Of2 (f v)
-      | Choice2Of2 msg -> Choice2Of2 msg
-  
-    let mapSnd f = function
-      | Choice1Of2 v -> Choice1Of2 v
-      | Choice2Of2 v -> Choice2Of2 (f v)
-  
-    let map2 f1 f2: Choice<'a, 'b> -> Choice<'c, 'd> = function
-      | Choice1Of2 v -> Choice1Of2 (f1 v)
-      | Choice2Of2 v -> Choice2Of2 (f2 v)
-  
-    let bind (f : 'a -> Choice<'b, 'c>) (v : Choice<'a, 'c>) =
-      match v with
-      | Choice1Of2 v -> f v
-      | Choice2Of2 c -> Choice2Of2 c
-  
-    let bindSnd (f : 'a -> Choice<'c, 'b>) (v : Choice<'c, 'a>) =
-      match v with
-      | Choice1Of2 x -> Choice1Of2 x
-      | Choice2Of2 x -> f x
-      
-    let fold f g =
-      function
-      | Choice1Of2 x -> f x
-      | Choice2Of2 y -> g y
-      
-    let apply f v =
-      bind (fun f' ->
-        bind (fun v' ->
-          create (f' v')) v) f
-  
-    let applySnd f v =
-      bind (fun f' ->
-        bindSnd (fun v' ->
-          createSnd (f' v')) v) f
-  
-    let lift2 f v1 v2 =
-      apply (apply (create f) v1) v2
-  
-    let lift3 f v1 v2 v3 =
-      apply (apply (apply (create f) v1) v2) v3
-  
-    let lift4 f v1 v2 v3 v4 =
-      apply (apply (apply (apply (create f) v1) v2) v3) v4
-  
-    let lift5 f v1 v2 v3 v4 v5 =
-      apply (apply (apply (apply (apply (create f) v1) v2) v3) v4) v5
-  
-    let ofOption onMissing = function
-      | Some x -> Choice1Of2 x
-      | None   -> Choice2Of2 onMissing
-  
-    let ofResult = function
-      | Ok x -> Choice1Of2 x
-      | Error x -> Choice2Of2 x
-  
-    let toResult = function
-      | Choice1Of2 x -> Ok x
-      | Choice2Of2 x -> Error x
-  
-    let inject f = function
-      | Choice1Of2 x -> f x; Choice1Of2 x
-      | Choice2Of2 x -> Choice2Of2 x
-  
-    let injectSnd f = function
-      | Choice1Of2 x -> Choice1Of2 x
-      | Choice2Of2 x -> f x; Choice2Of2 x
-  
-    module Operators =
-  
-      let inline (>>=) m f =
-        bind f m
-  
-      let inline (>>-) m f = // snd
-        bindSnd f m
-  
-      let inline (=<<) f m =
-        bind f m
-  
-      let inline (-<<) f m = // snd
-        bindSnd f m
-  
-      let inline (>>*) m f =
-        inject f m
-  
-      let inline (>>@) m f = // snd
-        injectSnd f m
-  
-      let inline (<*>) f m =
-        apply f m
-  
-      let inline (<!>) f m =
-        map f m
-  
-      let inline (>!>) m f =
-        map f m
-  
-      let inline (<@>) f m = // snd
-        mapSnd f m
-  
-      let inline (>@>) m f = // snd
-        mapSnd f m
-  
-      let inline ( *>) m1 m2 =
-        lift2 (fun _ x -> x) m1 m2
-  
-      let inline ( <*) m1 m2 =
-        lift2 (fun x _ -> x) m1 m2
+module Choice =
+
+  let create v = Choice1Of2 v
+
+  let createSnd v = Choice2Of2 v
+
+  let map f = function
+    | Choice1Of2 v -> Choice1Of2 (f v)
+    | Choice2Of2 msg -> Choice2Of2 msg
+
+  let mapSnd f = function
+    | Choice1Of2 v -> Choice1Of2 v
+    | Choice2Of2 v -> Choice2Of2 (f v)
+
+  let map2 f1 f2: Choice<'a, 'b> -> Choice<'c, 'd> = function
+    | Choice1Of2 v -> Choice1Of2 (f1 v)
+    | Choice2Of2 v -> Choice2Of2 (f2 v)
+
+  let bind (f : 'a -> Choice<'b, 'c>) (v : Choice<'a, 'c>) =
+    match v with
+    | Choice1Of2 v -> f v
+    | Choice2Of2 c -> Choice2Of2 c
+
+  let bindSnd (f : 'a -> Choice<'c, 'b>) (v : Choice<'c, 'a>) =
+    match v with
+    | Choice1Of2 x -> Choice1Of2 x
+    | Choice2Of2 x -> f x
+    
+  let fold f g =
+    function
+    | Choice1Of2 x -> f x
+    | Choice2Of2 y -> g y
+    
+  let apply f v =
+    bind (fun f' ->
+      bind (fun v' ->
+        create (f' v')) v) f
+
+  let applySnd f v =
+    bind (fun f' ->
+      bindSnd (fun v' ->
+        createSnd (f' v')) v) f
+
+  let lift2 f v1 v2 =
+    apply (apply (create f) v1) v2
+
+  let lift3 f v1 v2 v3 =
+    apply (apply (apply (create f) v1) v2) v3
+
+  let lift4 f v1 v2 v3 v4 =
+    apply (apply (apply (apply (create f) v1) v2) v3) v4
+
+  let lift5 f v1 v2 v3 v4 v5 =
+    apply (apply (apply (apply (apply (create f) v1) v2) v3) v4) v5
+
+  let ofOption onMissing = function
+    | Some x -> Choice1Of2 x
+    | None   -> Choice2Of2 onMissing
+
+  let ofResult = function
+    | Ok x -> Choice1Of2 x
+    | Error x -> Choice2Of2 x
+
+  let toResult = function
+    | Choice1Of2 x -> Ok x
+    | Choice2Of2 x -> Error x
+
+  let inject f = function
+    | Choice1Of2 x -> f x; Choice1Of2 x
+    | Choice2Of2 x -> Choice2Of2 x
+
+  let injectSnd f = function
+    | Choice1Of2 x -> Choice1Of2 x
+    | Choice2Of2 x -> f x; Choice2Of2 x
+
+  module Operators =
+
+    let inline (>>=) m f =
+      bind f m
+
+    let inline (>>-) m f = // snd
+      bindSnd f m
+
+    let inline (=<<) f m =
+      bind f m
+
+    let inline (-<<) f m = // snd
+      bindSnd f m
+
+    let inline (>>*) m f =
+      inject f m
+
+    let inline (>>@) m f = // snd
+      injectSnd f m
+
+    let inline (<*>) f m =
+      apply f m
+
+    let inline (<!>) f m =
+      map f m
+
+    let inline (>!>) m f =
+      map f m
+
+    let inline (<@>) f m = // snd
+      mapSnd f m
+
+    let inline (>@>) m f = // snd
+      mapSnd f m
+
+    let inline ( *>) m1 m2 =
+      lift2 (fun _ x -> x) m1 m2
+
+    let inline ( <*) m1 m2 =
+      lift2 (fun x _ -> x) m1 m2
 
 
 module Result =
@@ -704,24 +703,22 @@ module List =
   /// using apply.
   let sequenceAsyncA x = traverseAsyncA id x
 
-  module Compatibility=
-    open Compatibility
-    /// Map a Choice-producing function over a list to get a new Choice using
-    /// applicative style. ('a -> Choice<'b, 'c>) -> 'a list -> Choice<'b list, 'c>
-    let rec traverseChoiceA f list =
-      let (<*>) = Choice.apply
-      let cons head tail = head :: tail
-  
-      // right fold over the list
-      let initState = Choice.create []
-      let folder head tail =
-        Choice.create cons <*> (f head) <*> tail
-  
-      List.foldBack folder list initState
-  
-    /// Transform a "list<Choice>" into a "Choice<list>" and collect the results
-    /// using apply.
-    let sequenceChoiceA x = traverseChoiceA id x
+  /// Map a Choice-producing function over a list to get a new Choice using
+  /// applicative style. ('a -> Choice<'b, 'c>) -> 'a list -> Choice<'b list, 'c>
+  let rec traverseChoiceA f list =
+    let (<*>) = Choice.apply
+    let cons head tail = head :: tail
+
+    // right fold over the list
+    let initState = Choice.create []
+    let folder head tail =
+      Choice.create cons <*> (f head) <*> tail
+
+    List.foldBack folder list initState
+
+  /// Transform a "list<Choice>" into a "Choice<list>" and collect the results
+  /// using apply.
+  let sequenceChoiceA x = traverseChoiceA id x
 
   /// Map a Result-producing function over a list to get a new Result using
   /// applicative style. ('a -> Result<'b, 'c>) -> 'a list -> Result<'b list, 'c>
@@ -796,11 +793,11 @@ module App =
       assembly.GetManifestResourceNames()
       |> Array.fold (fun s t -> sprintf "%s\n - %s" s t) ""
       |> sprintf "couldn't find resource named '%s', from: %s" name
-      |> Error
+      |> Choice2Of2
     else
       use reader = new StreamReader(stream)
       reader.ReadToEnd ()
-      |> Ok
+      |> Choice1Of2
 
   /// Get the current assembly resource
   let resource =
