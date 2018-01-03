@@ -80,6 +80,10 @@ module Choice =
   let toResult = function
     | Choice1Of2 x -> Ok x
     | Choice2Of2 x -> Error x
+    
+  let orDefault value = function
+    | Choice1Of2 v -> v
+    | _ -> value ()
 
   let inject f = function
     | Choice1Of2 x -> f x; Choice1Of2 x
@@ -132,7 +136,6 @@ module Choice =
 
 
 module Result =
-
 
   let map2 f1 f2: Result<'a, 'b> -> Result<'c, 'd> = function
     | Ok v -> Ok (f1 v)
@@ -230,6 +233,7 @@ module Result =
 
     let inline ( <*) m1 m2 =
       lift2 (fun x _ -> x) m1 m2
+
 module Option =
 
   let create x = Some x
@@ -272,7 +276,7 @@ module Option =
     | None      -> new Nullable<_>()
 
   let orDefault x = function
-    | None -> x
+    | None -> x ()
     | Some y -> y
 
   let inject f = function
