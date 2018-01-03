@@ -71,7 +71,7 @@ module Choice =
 
   let ofOption onMissing = function
     | Some x -> Choice1Of2 x
-    | None   -> Choice2Of2 onMissing
+    | None   -> Choice2Of2 (onMissing ())
 
   let ofResult = function
     | Ok x -> Choice1Of2 x
@@ -261,7 +261,7 @@ module Option =
 
   let toChoice case2 = function
     | Some x -> Choice1Of2 x
-    | None   -> Choice2Of2 case2
+    | None   -> Choice2Of2 (case2 ())
 
   let ofNullable nullable : 'a option =
     match box nullable with
