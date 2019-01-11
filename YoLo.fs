@@ -146,10 +146,10 @@ module Result =
     | Ok x -> Ok x
     | Error x -> f x
     
-  let fold f g =
-    function
-    | Ok x -> f x
-    | Error y -> g y
+  let fold (f: 'a -> 'b -> 'b) (z: 'b) (o: Option<'a>) : 'b =
+    match o with
+    | None -> None
+    | Some v -> f v z
     
   let apply f v =
     Result.bind (fun f' ->
