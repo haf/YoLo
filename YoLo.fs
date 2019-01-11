@@ -20,6 +20,11 @@ module Choice =
 
   let createSnd v = Choice2Of2 v
 
+  let fold (f: 'a -> 'b -> 'b) (z: 'b) (c: Choice<'a, 'b>) : 'b =
+    match c with
+      | Choice2Of2 _ -> z
+      | Choice1Of2 v -> f v z
+
   let map f = function
     | Choice1Of2 v -> Choice1Of2 (f v)
     | Choice2Of2 msg -> Choice2Of2 msg
@@ -41,11 +46,6 @@ module Choice =
     match v with
     | Choice1Of2 x -> Choice1Of2 x
     | Choice2Of2 x -> f x
-    
-  let fold f g =
-    function
-    | Choice1Of2 x -> f x
-    | Choice2Of2 y -> g y
     
   let apply f v =
     bind (fun f' ->
