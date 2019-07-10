@@ -669,6 +669,138 @@ module Async =
     let inline ( <*) m1 m2 =
       lift2 (fun x _ -> x) m1 m2
 
+/// Stacks the Async Result monad.
+/// All functions from Yolo's Result are implemented, so it's easy to replace it.
+module AsyncResult =
+
+  // https://fsharpforfunandprofit.com/posts/elevated-world-5/#asynclist
+
+  let ok v = v |> Ok |> Async.result
+
+  let error v = v |> Error |> Async.result
+
+  let map f x =
+    f |> Result.map |> Async.map <| x
+
+  let map2 f1 f2 x =
+    Result.map2 f1 f2 |> Async.map <| x
+
+  let mapError f x =
+    Result.mapError f |> Async.map <| x
+
+  let fold f g x =
+    Result.fold f g |> Async.map <| x
+
+  let bind f xAR = async {
+    match! xAR with
+    | Ok x -> return! f x
+    | Error e -> return Error e
+  }
+
+  let bindError f xAR = async {
+    match! xAR with
+    | Ok x -> return Ok x
+    | Error e -> return! f e
+  }
+
+  let bindResult f xAR = async {
+    match! xAR with
+    | Ok x -> return f x
+    | Error e -> return e |> Error
+  }
+
+  let bindAsync f xAR = async {
+    match! xAR with
+    | Ok x -> return! f >> Async.Catch >> Async.map Result.ofChoice <| x
+    | Error e -> return e |> Error
+  }
+
+  let apply f x =
+    f |> Async.bind (fun fR ->
+      x |> Async.map (fun xR ->
+        Result.apply fR xR))
+
+  let applyResult f x =
+    f |> Result.apply |> Async.map <| x
+
+  let lift2 f v1 v2 =
+    apply (apply (ok f) v1) v2
+
+  let lift3 f v1 v2 v3 =
+    apply (apply (apply (ok f) v1) v2) v3
+
+  let lift4 f v1 v2 v3 v4 =
+    apply (apply (apply (apply (ok f) v1) v2) v3) v4
+
+  let lift5 f v1 v2 v3 v4 v5 =
+    apply (apply (apply (apply (apply (ok f) v1) v2) v3) v4) v5
+
+  let ofOption onMissing = function
+    | Some x -> ok x
+    | None -> error onMissing
+
+  let ofAsyncOption onMissing x =
+    onMissing |> ofOption |> Async.bind <| x
+
+  let toChoice x =
+    fold Choice1Of2 Choice2Of2 <| x
+
+  let ofChoice = function
+    | Choice1Of2 x -> ok x
+    | Choice2Of2 x -> error x
+
+  let ofAsyncChoice x =
+    ofChoice |> Async.bind <| x
+
+  let inject f x =
+    map ( fun x -> f x; x ) x
+
+  let injectError f x =
+    map2 id ( fun x -> f x; x ) x
+
+  // we love syntatic suggar.
+  module Operators =
+
+    let inline (>>=) m f =
+      bind f m
+
+    let inline (>>-) m f = // snd
+      bindError f m
+
+    let inline (=<<) f m =
+      bind f m
+
+    //vscode/ionide has a highlighter bug, so we use comment (***) to fix it
+    let inline (-<< (***) ) f m = // snd
+      bindError f m
+
+    let inline (>>*) m f =
+      inject f m
+
+    let inline (>>@) m f = // snd
+      injectError f m
+
+    let inline (<*>) f m =
+      apply f m
+
+    let inline (<!>) f m =
+      map f m
+
+    let inline (>!>) m f =
+      map f m
+
+    let inline (<@>) f m = // snd
+      mapError f m
+
+    let inline (>@>) m f = // snd
+      mapError f m
+
+    let inline ( *>) m1 m2 =
+      lift2 (fun _ x -> x) m1 m2
+
+    let inline ( <*) m1 m2 =
+      lift2 (fun x _ -> x) m1 m2
+
 module List =
 
   /// Split xs at n, into two lists, or where xs ends if xs.Length < n.
@@ -740,6 +872,41 @@ module List =
   /// Transform a "list<Result>" into a "Result<list>" and collect the results
   /// using apply.
   let sequenceResultA x = traverseResultA id x
+
+  /// Map an AsyncResult producing function over a list to get a new AsyncResult using
+  /// applicative style. ('a -> Async<Result<'b, 'c>>) -> 'a list -> Async<Result<'b list, 'c>>
+  let rec traverseAsyncResultA f list =
+    let (<*>) = AsyncResult.apply
+    let cons head tail = head :: tail
+
+    // right fold over the list
+    let initState = AsyncResult.ok []
+    let folder head tail =
+      AsyncResult.ok cons <*> (f head) <*> tail
+
+    List.foldBack folder list initState
+
+  /// Transform a "list<Async<Result<'a, 'b>>" into a "Async<Result<'a list, 'b>>" and collect the results
+  /// using apply.
+  let sequenceAsyncResultA x = traverseAsyncResultA id x
+
+  /// Map an AsyncResult producing function over a list to get a new AsyncResult
+  /// using monadic style. ('a -> Async<Result<'b, 'c>>) -> 'a list -> Async<Result<'b list, 'c>>
+  let rec traverseAsyncResultM f list =
+    let (<*>) = AsyncResult.apply
+    let (>>=) m f = AsyncResult.bind f m
+    let cons head tail = head :: tail
+
+    let initState = AsyncResult.ok []
+    let folder head tail =
+      f head >>= (fun h ->
+      tail >>= (fun t ->
+      AsyncResult.ok (cons h t) ))
+    List.foldBack folder list initState
+
+  /// Transform a "list<Async<Result<'a, 'b>>" into a "Async<Result<'a list, 'b>>" and collect the results
+  /// using bind.
+  let sequenceAsyncResultM x = traverseAsyncResultM id x
 
 module Seq =
 
