@@ -692,25 +692,29 @@ module AsyncResult =
     Result.fold f g |> Async.map <| x
 
   let bind f xAR = async {
-    match! xAR with
+    let! x = xAR
+    match x with
     | Ok x -> return! f x
     | Error e -> return Error e
   }
 
   let bindError f xAR = async {
-    match! xAR with
+    let! x = xAR
+    match x with
     | Ok x -> return Ok x
     | Error e -> return! f e
   }
 
   let bindResult f xAR = async {
-    match! xAR with
+    let! x = xAR
+    match x with
     | Ok x -> return f x
     | Error e -> return e |> Error
   }
 
   let bindAsync f xAR = async {
-    match! xAR with
+    let! x = xAR
+    match x with
     | Ok x -> return! f >> Async.Catch >> Async.map Result.ofChoice <| x
     | Error e -> return e |> Error
   }
