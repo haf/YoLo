@@ -439,21 +439,21 @@ module Culture =
 module UTF8 =
   open System.Text
 
-  let private utf8 = Encoding.UTF8
+  let internal encoding = UTF8Encoding(false)
 
   /// Convert the full buffer `b` filled with UTF8-encoded strings into a CLR
   /// string.
   let toString (bs: byte []) =
-    utf8.GetString bs
+    encoding.GetString bs
 
   /// Convert the byte array to a string, by indexing into the passed buffer `b`
   /// and taking `count` bytes from it.
   let toStringAtOffset (b: byte []) (index: int) (count: int) =
-    utf8.GetString(b, index, count)
+    encoding.GetString(b, index, count)
 
   /// Get the UTF8-encoding of the string.
   let bytes (s: string) =
-    utf8.GetBytes s
+    encoding.GetBytes s
 
   /// Convert the passed string `s` to UTF8 and then encode the buffer with
   /// base64.
